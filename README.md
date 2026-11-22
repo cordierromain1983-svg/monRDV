@@ -2,7 +2,7 @@
 
 Page élève : https://cordierromain1983-svg.github.io/monRDV/
 
-L'élève touche un créneau, puis son prénom, répond au QCM de préparation (avec un message libre facultatif), et c'est réservé.
+L'élève touche un créneau, puis son prénom, se note de 1 à 5 sur chaque question de préparation (avec un message libre facultatif), et c'est réservé.
 Il reçoit un **code personnel à 4 caractères** qui lui permet de modifier ses réponses, de changer de créneau ou d'annuler, y compris depuis un autre appareil.
 Il peut ajouter le rendez-vous à son agenda (Google, iPhone ou Outlook), avec un rappel une heure avant.
 
@@ -13,8 +13,9 @@ Tout se gère dans le Google Sheet **« RDV conseil de classe »** (Google Drive
 | Onglet | Rôle |
 |---|---|
 | **Créneaux** | Une ligne = un créneau (Jour, Heure, Prénom vide). Le prénom s'ajoute quand un élève réserve. |
-| **Élèves** | La liste de la classe. Une ligne **rouge** = élève pas encore inscrit. Les réponses au QCM et le message libre arrivent ici. |
-| **Questions** | Le QCM : une question par ligne, les choix séparés par `/`. Ajouter, retirer ou reformuler une question est pris en compte immédiatement. |
+| **Élèves** | La liste de la classe. Une ligne **rouge** = élève pas encore inscrit. Les notes (1 à 5) et le message libre arrivent ici. |
+| **Synthèse** | Calculée automatiquement : pour chaque question, nombre de réponses, moyenne de la classe (en couleur) et répartition des notes. |
+| **Questions** | Une question par ligne, avec la signification de la note 1 et de la note 5. Ajouter, retirer ou reformuler une question est pris en compte immédiatement (jusqu'à 12 questions dans la Synthèse). |
 | **Réglages** | Titre de la page, lieu, durée d'un rendez-vous, **date du conseil de classe**. |
 
 ## Au quotidien

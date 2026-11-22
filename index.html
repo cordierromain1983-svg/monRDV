@@ -150,16 +150,20 @@
 
   fieldset { border: 0; padding: 0; margin: 0 0 18px; min-width: 0; }
   legend { font-weight: 700; margin-bottom: 8px; padding: 0; }
-  .choix { display: flex; flex-wrap: wrap; gap: 7px; }
-  .choix label { position: relative; }
-  .choix input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
-  .choix span {
-    display: inline-block; border: 1.5px solid var(--bord); border-radius: 999px; padding: 8px 14px;
-    font-size: .96rem; cursor: pointer; transition: background .12s, border-color .12s; user-select: none;
+  fieldset.question { padding-bottom: 16px; border-bottom: 1px dashed var(--bord); }
+  .echelle { display: grid; grid-template-columns: repeat(var(--n, 5), 1fr); gap: 6px; }
+  .echelle label { position: relative; }
+  .echelle input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .echelle span {
+    display: grid; place-items: center; height: 48px; border: 1.5px solid var(--bord); border-radius: 12px;
+    font: 700 1.2rem var(--titre); color: var(--encre); cursor: pointer; user-select: none;
+    transition: background .12s, border-color .12s, transform .1s;
   }
-  .choix label:hover span { border-color: var(--encre); }
-  .choix input:checked + span { background: var(--encre); border-color: var(--encre); color: #fff; font-weight: 700; }
-  .choix input:focus-visible + span { outline: 3px solid var(--encre); outline-offset: 2px; }
+  .echelle label:hover span { border-color: var(--encre); background: var(--encre-pale); }
+  .echelle input:checked + span { background: var(--encre); border-color: var(--encre); color: #fff; transform: translateY(-2px); box-shadow: 0 3px 0 var(--encre-fonce); }
+  .echelle input:focus-visible + span { outline: 3px solid var(--encre); outline-offset: 2px; }
+  .bornes { display: flex; justify-content: space-between; gap: 16px; margin-top: 6px; font-size: .85rem; color: var(--gris); line-height: 1.25; }
+  .bornes span:last-child { text-align: right; }
   textarea, .champ {
     width: 100%; border: 1.5px solid var(--bord); border-radius: 12px; padding: 12px 14px; background: var(--blanc);
     font-size: 1rem; resize: vertical;
@@ -200,7 +204,7 @@
 <header class="copie">
   <div class="wrap">
     <h1 id="titre">Rendez-vous avant le conseil de classe</h1>
-    <p class="intro">Choisis un créneau, dis-moi comment s'est passé ton semestre, et c'est réservé.</p>
+    <p class="intro">Choisis un créneau, fais le point sur ton semestre en quelques notes, et c'est réservé.</p>
     <ul class="faits" id="faits"></ul>
   </div>
 </header>
@@ -495,22 +499,26 @@ function ouvrirQuestions(c, memeCreneau) {
 
   const form = h('form', { novalidate: true });
   etat.questions.forEach((q, i) => {
-    const groupe = h('div', { class: 'choix' });
-    q.choix.forEach((choix) => {
-      const input = h('input', { type: 'radio', name: 'q' + i, value: choix, checked: brouillon.reponses[q.q] === choix });
-      input.addEventListener('change', () => { brouillon.reponses[q.q] = choix; form.querySelector('.msg')?.classList.remove('vu'); });
-      groupe.append(h('label', null, input, h('span', null, choix)));
-    });
-    form.append(h('fieldset', null, h('legend', null, q.q), groupe));
+    const max = q.max || 5;
+    const groupe = h('div', { class: 'echelle', style: '--n:' + max });
+    for (let n = 1; n <= max; n++) {
+      const sens = n === 1 ? q.bas : n === max ? q.haut : '';
+      const input = h('input', { type: 'radio', name: 'q' + i, value: n, checked: Number(brouillon.reponses[q.q]) === n,
+        'aria-label': n + ' sur ' + max + (sens ? ' : ' + sens : '') });
+      input.addEventListener('change', () => { brouillon.reponses[q.q] = n; form.querySelector('.msg')?.classList.remove('vu'); });
+      groupe.append(h('label', null, input, h('span', { 'aria-hidden': 'true' }, n)));
+    }
+    form.append(h('fieldset', { class: 'question' }, h('legend', null, q.q), groupe,
+      (q.bas || q.haut) && h('div', { class: 'bornes', 'aria-hidden': 'true' }, h('span', null, '1 = ' + (q.bas || '')), h('span', null, max + ' = ' + (q.haut || '')))));
   });
-  const zone = h('textarea', { id: 'message', rows: 3, maxlength: 1000, placeholder: 'Une question, une remarque, un sujet dont tu veux parler…' });
+  const zone = h('textarea', { id: 'message', rows: 3, maxlength: 1000, placeholder: 'Ce que tu veux, si tu en as envie : une question, une remarque, un sujet à aborder…' });
   zone.value = brouillon.message || '';
   zone.addEventListener('input', () => { brouillon.message = zone.value; });
   const msg = zoneMessage();
   const libelle = memeCreneau ? 'Enregistrer mes réponses' : modif ? 'Déplacer mon rendez-vous' : 'Réserver ce créneau';
   const bouton = h('button', { class: 'btn plein', type: 'submit' }, libelle);
   form.append(
-    h('label', { class: 'titre-champ', for: 'message' }, 'Autre chose à me dire ? (facultatif)'),
+    h('label', { class: 'titre-champ', for: 'message' }, 'Un mot à ajouter\u00a0? (facultatif)'),
     zone, msg,
     h('div', { class: 'bas' }, bouton,
       !modif && h('button', { class: 'btn discret', type: 'button', onclick: () => choisirCreneau(c) }, 'Changer de prénom')));
@@ -520,6 +528,7 @@ function ouvrirQuestions(c, memeCreneau) {
     tete(modif ? (memeCreneau ? 'Mes réponses' : 'Nouveau créneau') : 'Étape 2 sur 2'),
     h('h2', { id: 'fen-titre' }, 'Prépare ton entretien'),
     h('p', { class: 'rappel' }, brouillon.prenom + ', ', h('span', { class: 'fluo' }, c.jour + ' à ' + c.heure)),
+    h('p', { class: 'aide' }, 'Pour chaque question, donne une note de 1 à ' + ((etat.questions[0] || {}).max || 5) + '.'),
     h('p', { class: 'confid', icone: 'cadenas' }, 'Seul ton professeur verra tes réponses.'),
     form);
 }
@@ -645,11 +654,12 @@ const demoBase = (() => {
   return {
     titre: 'Rendez-vous avant le conseil de classe', lieu: 'Salle B12', duree: 10, creneaux, eleves,
     questions: [
-      { q: 'Comment juges-tu ton semestre ?', choix: ['Très bien', 'Plutôt bien', 'Moyen', 'Difficile'] },
-      { q: 'Ton travail personnel à la maison ?', choix: ['Régulier', 'Irrégulier', 'Presque inexistant'] },
-      { q: 'Ta participation en classe ?', choix: ['Je participe souvent', 'De temps en temps', 'Rarement'] },
-      { q: 'Ta principale difficulté ?', choix: ['Comprendre les cours', "M'organiser", 'Rester motivé·e', 'Aucune en particulier'] },
-      { q: "Tu veux parler d'orientation ?", choix: ['Oui', 'Non', 'Je ne sais pas encore'] }
+      { q: "Ton semestre, dans l'ensemble", bas: 'Très difficile', haut: 'Très bien', max: 5 },
+      { q: 'Ton travail personnel à la maison', bas: 'Presque inexistant', haut: 'Très régulier', max: 5 },
+      { q: 'Ta compréhension des cours', bas: 'Je suis souvent perdu·e', haut: 'Je comprends bien', max: 5 },
+      { q: 'Ton intégration dans la classe', bas: "Je me sens à l'écart", haut: 'Je me sens bien intégré·e', max: 5 },
+      { q: 'Tes relations avec les autres élèves', bas: 'Difficiles', haut: 'Très bonnes', max: 5 },
+      { q: "Ton projet d'orientation", bas: 'Je ne sais pas du tout', haut: "C'est clair pour moi", max: 5 }
     ]
   };
 })();
