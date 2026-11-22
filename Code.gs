@@ -4,7 +4,8 @@
  * Onglets du tableau :
  *  - Créneaux  : Jour | Heure | Prénom | Réservé le      → une ligne = un créneau (laisser Prénom vide)
  *  - Élèves    : Prénom | Rendez-vous | réponses…        → la liste de classe ; Rendez-vous vide = pas encore inscrit
- *  - Questions : Question | Choix (séparés par /)        → le QCM de préparation, modifiable
+ *  - Questions : Question | Signification de 1 | Signification de 5 → échelle de 1 à 5, modifiable
+ *  - Synthèse  : moyenne et répartition des notes par question (formules automatiques)
  *  - Réglages  : titre, lieu, durée, date du conseil     → après la date du conseil, tout est purgé automatiquement
  *
  * Installation : lancer une fois « installer », puis déployer en application Web (accès : Tout le monde).
@@ -32,13 +33,17 @@ const COL = {
   code: 'Code élève (ne pas modifier)'
 };
 
+const ECHELLE = 5; // notes de 1 à 5
+
 const QUESTIONS_DEFAUT = [
-  ['Comment juges-tu ton semestre ?', 'Très bien / Plutôt bien / Moyen / Difficile'],
-  ['Ton travail personnel à la maison ?', 'Régulier / Irrégulier / Presque inexistant'],
-  ['Ta participation en classe ?', 'Je participe souvent / De temps en temps / Rarement'],
-  ['Ta principale difficulté ?', 'Comprendre les cours / M\'organiser / Rester motivé·e / Aucune en particulier'],
-  ['Tu veux parler d\'orientation ?', 'Oui / Non / Je ne sais pas encore']
+  ['Ton semestre, dans l\'ensemble', 'Très difficile', 'Très bien'],
+  ['Ton travail personnel à la maison', 'Presque inexistant', 'Très régulier'],
+  ['Ta compréhension des cours', 'Je suis souvent perdu·e', 'Je comprends bien'],
+  ['Ton intégration dans la classe', 'Je me sens à l\'écart', 'Je me sens bien intégré·e'],
+  ['Tes relations avec les autres élèves', 'Difficiles', 'Très bonnes'],
+  ['Ton projet d\'orientation', 'Je ne sais pas du tout', 'C\'est clair pour moi']
 ];
+const F_SYNTHESE = 'Synthèse';
 
 /* ======================= Installation & menu ======================= */
 
@@ -76,12 +81,14 @@ function installer() {
   let qs = ss.getSheetByName(F_QUESTIONS);
   if (!qs) qs = ss.insertSheet(F_QUESTIONS);
   if (qs.getLastRow() === 0) {
-    qs.getRange(1, 1, 1, 2).setValues([['Question', 'Choix (séparés par /)']]);
-    qs.getRange(2, 1, QUESTIONS_DEFAUT.length, 2).setValues(QUESTIONS_DEFAUT);
-    entete_(qs, 2);
-    qs.setColumnWidth(1, 300);
-    qs.setColumnWidth(2, 420);
+    qs.getRange(1, 1, 1, 3).setValues([['Question (échelle de 1 à ' + ECHELLE + ')', 'Signification de 1', 'Signification de ' + ECHELLE]]);
+    qs.getRange(2, 1, QUESTIONS_DEFAUT.length, 3).setValues(QUESTIONS_DEFAUT);
+    entete_(qs, 3);
+    qs.setColumnWidth(1, 320);
+    qs.setColumnWidths(2, 2, 220);
   }
+
+  installerSynthese_(ss);
 
   let rg = ss.getSheetByName(F_REGLAGES);
   if (!rg) rg = ss.insertSheet(F_REGLAGES);
@@ -191,14 +198,16 @@ function reserver_(req) {
     return { ok: false, code: 'pris', erreur: 'Oups, ce créneau vient d\'être pris. Choisis-en un autre.' };
   }
 
-  // Réponses : uniquement les choix proposés
+  // Réponses : une note entière de 1 à ECHELLE pour chaque question
   const questions = lireQuestions_();
-  const reponses = req.reponses || {};
+  const brutes = req.reponses || {};
+  const reponses = {};
   for (let i = 0; i < questions.length; i++) {
-    const v = reponses[questions[i].q];
-    if (!v || questions[i].choix.indexOf(v) === -1) {
+    const v = Number(brutes[questions[i].q]);
+    if (!(v >= 1 && v <= ECHELLE && Math.floor(v) === v)) {
       return { ok: false, erreur: 'Réponds à toutes les questions avant de valider.' };
     }
+    reponses[questions[i].q] = v;
   }
   const message = String(req.message || '').trim().slice(0, 1000);
 
@@ -249,7 +258,7 @@ function moi_(req) {
   const c = creneauDe_(lireCreneaux_(), eleve.prenom);
   if (!c) return { ok: false, code: 'aucun', erreur: 'Tu n\'as pas de rendez-vous en ce moment.' };
   const reponses = {};
-  lireQuestions_().forEach(function (q) { reponses[q.q] = eleve.valeurs[q.q] || ''; });
+  lireQuestions_().forEach(function (q) { const n = Number(eleve.valeurs[q.q]); if (n) reponses[q.q] = n; });
   return {
     ok: true, prenom: eleve.prenom, code: eleve.code, id: c.id, jour: c.jour, heure: c.heure,
     reponses: reponses, message: eleve.valeurs[COL.message] || ''
@@ -367,14 +376,9 @@ function synchroniserRdv_(eleves, creneaux) {
 function lireQuestions_() {
   const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(F_QUESTIONS);
   if (!sh || sh.getLastRow() < 2) return [];
-  return sh.getRange(2, 1, sh.getLastRow() - 1, 2).getDisplayValues()
-    .map(function (r) {
-      return {
-        q: r[0].trim(),
-        choix: r[1].split('/').map(function (s) { return s.trim(); }).filter(function (s) { return s; })
-      };
-    })
-    .filter(function (x) { return x.q && x.choix.length; });
+  return sh.getRange(2, 1, sh.getLastRow() - 1, 3).getDisplayValues()
+    .map(function (r) { return { q: r[0].trim(), bas: r[1].trim(), haut: r[2].trim(), max: ECHELLE }; })
+    .filter(function (x) { return x.q; });
 }
 
 function reglages_() {
@@ -397,6 +401,44 @@ function ecrireReglage_(cle, valeur) {
   const i = cles.indexOf(cle);
   if (i >= 0) sh.getRange(i + 1, 2).setValue(valeur);
   else sh.getRange(n + 1, 1, 1, 2).setValues([[cle, valeur]]);
+}
+
+/* ======================= Synthèse chiffrée ======================= */
+
+/** Onglet de formules : pour chaque question, nombre de réponses, moyenne et répartition des notes. */
+function installerSynthese_(ss) {
+  if (ss.getSheetByName(F_SYNTHESE)) return;
+  const sh = ss.insertSheet(F_SYNTHESE);
+  const entetes = ['Question', 'Réponses', 'Moyenne /' + ECHELLE];
+  for (let n = 1; n <= ECHELLE; n++) entetes.push('Nb de ' + n);
+  sh.getRange(1, 1, 1, entetes.length).setValues([entetes]);
+  const col = function (r) { return "INDEX('" + F_ELEVES + "'!$A$2:$Z$300,0,MATCH($A" + r + ",'" + F_ELEVES + "'!$A$1:$Z$1,0))"; };
+  const lignes = [];
+  for (let r = 2; r <= 13; r++) { // jusqu'à 12 questions
+    const ligne = [
+      "=IF('" + F_QUESTIONS + "'!A" + r + "=\"\",\"\",'" + F_QUESTIONS + "'!A" + r + ")",
+      '=IF($A' + r + '="","",IFERROR(COUNT(' + col(r) + '),0))',
+      '=IF($A' + r + '="","",IFERROR(ROUND(AVERAGE(' + col(r) + '),1),"–"))'
+    ];
+    for (let n = 1; n <= ECHELLE; n++) ligne.push('=IF($A' + r + '="","",IFERROR(COUNTIF(' + col(r) + ',' + n + '),0))');
+    lignes.push(ligne);
+  }
+  sh.getRange(2, 1, lignes.length, entetes.length).setFormulas(lignes);
+  sh.getRange(16, 1, 2, 2).setFormulas([
+    ['Élèves inscrits', "=COUNTIF('" + F_ELEVES + "'!B2:B300,\"?*\")"],
+    ['Élèves dans la classe', "=COUNTA('" + F_ELEVES + "'!A2:A300)"]
+  ]);
+  sh.getRange(16, 1, 2, 1).setFontWeight('bold');
+  entete_(sh, entetes.length);
+  sh.setColumnWidth(1, 320);
+  // Moyenne en couleur : rouge (1) → jaune (3) → vert (5)
+  const regle = SpreadsheetApp.newConditionalFormatRule()
+    .setGradientMinpointWithValue('#f4a7a7', SpreadsheetApp.InterpolationType.NUMBER, '1')
+    .setGradientMidpointWithValue('#fff3b0', SpreadsheetApp.InterpolationType.NUMBER, String((1 + ECHELLE) / 2))
+    .setGradientMaxpointWithValue('#a8e0b9', SpreadsheetApp.InterpolationType.NUMBER, String(ECHELLE))
+    .setRanges([sh.getRange('C2:C13')])
+    .build();
+  sh.setConditionalFormatRules([regle]);
 }
 
 /* ======================= Outils ======================= */
