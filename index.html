@@ -2,327 +2,685 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2338a8">
 <title>Rendez-vous avant le conseil de classe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f6f5f1; --card: #ffffff; --ink: #1d1d1b; --muted: #6b6a65;
-    --line: #e4e2db; --accent: #2f5bd3; --accent-ink: #ffffff; --accent-soft: #e8eefc;
-    --ok: #1f7a4d; --ok-soft: #e3f3ea; --err: #b3261e; --err-soft: #fbe9e7;
-    --radius: 14px;
+    --encre: #2338a8;        /* stylo bleu */
+    --encre-fonce: #18287c;
+    --encre-pale: #e8ecfb;
+    --marge: #e2445c;        /* marge rouge de la copie */
+    --ligne: #c9d4f1;        /* lignes Seyès */
+    --fluo: #fff06a;         /* surligneur */
+    --vert: #16865a;
+    --vert-pale: #e3f5ec;
+    --graphite: #1d2233;
+    --gris: #5d6478;
+    --bord: #dde2f0;
+    --fond: #f3f5fb;
+    --blanc: #ffffff;
+    --titre: "Bricolage Grotesque", system-ui, sans-serif;
+    --texte: "Atkinson Hyperlegible", system-ui, sans-serif;
   }
   * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--bg); color: var(--ink);
-    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  }
-  main { max-width: 640px; margin: 0 auto; padding: 28px 18px 60px; }
-  h1 { font-size: 1.55rem; line-height: 1.25; margin: 0 0 6px; letter-spacing: -0.01em; }
-  .sub { color: var(--muted); margin: 0 0 22px; }
-  .banner { border-radius: var(--radius); padding: 14px 16px; margin-bottom: 18px; }
-  .banner.demo { background: #fff6dd; border: 1px solid #f0dc9c; font-size: .92rem; }
-  .banner.mine { background: var(--ok-soft); border: 1px solid #bfe3cf; }
-  .banner.mine strong { color: var(--ok); }
-  .day { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; }
-  .day h2 { font-size: 1.05rem; margin: 0 0 12px; }
-  .day h2 small { color: var(--muted); font-weight: 400; font-size: .85rem; margin-left: 6px; }
-  .slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; }
-  .slot {
-    appearance: none; border: 1.5px solid var(--accent); background: var(--card); color: var(--accent);
-    border-radius: 10px; padding: 11px 4px; font: inherit; font-weight: 600; cursor: pointer;
-    transition: background .12s, color .12s, transform .08s;
-  }
-  .slot:hover { background: var(--accent-soft); }
-  .slot:active { transform: scale(.97); }
-  .slot:focus-visible { outline: 3px solid var(--accent-soft); outline-offset: 2px; }
-  .slot[disabled] {
-    border-color: var(--line); color: #b0aea7; background: #f1f0ec; cursor: not-allowed;
-    text-decoration: line-through; font-weight: 400;
-  }
-  .status { text-align: center; color: var(--muted); padding: 40px 0; }
-  .status button, .link { background: none; border: 0; color: var(--accent); font: inherit; cursor: pointer; text-decoration: underline; padding: 0; }
-  .empty { text-align: center; color: var(--muted); background: var(--card); border: 1px dashed var(--line); border-radius: var(--radius); padding: 30px 16px; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--fond); color: var(--graphite); font: 17px/1.5 var(--texte); }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 0 20px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  :focus-visible { outline: 3px solid var(--encre); outline-offset: 2px; }
 
-  /* Fenêtre de réservation */
-  .overlay {
-    position: fixed; inset: 0; background: rgba(20,20,18,.45); display: none;
-    align-items: flex-end; justify-content: center; z-index: 10;
+  /* ---------- En-tête : la copie Seyès ---------- */
+  .copie {
+    position: relative; background-color: var(--blanc);
+    background-image:
+      linear-gradient(to right, transparent 34px, var(--marge) 34px, var(--marge) 36px, transparent 36px),
+      repeating-linear-gradient(to right, transparent 0 31px, rgba(160,178,230,.45) 31px 32px),
+      repeating-linear-gradient(to bottom, transparent 0 31px, rgba(140,160,225,.7) 31px 32px),
+      repeating-linear-gradient(to bottom, transparent 0 7px, rgba(190,204,240,.55) 7px 8px);
+    border-bottom: 1px solid var(--bord);
+    padding: 40px 0 28px;
   }
-  .overlay.open { display: flex; }
-  .sheet {
-    background: var(--card); width: 100%; max-width: 480px; border-radius: 20px 20px 0 0;
-    padding: 22px 20px 26px; box-shadow: 0 -10px 40px rgba(0,0,0,.15);
+  @media (min-width: 720px) {
+    .copie { background-image:
+      linear-gradient(to right, transparent calc(50% - 380px), var(--marge) calc(50% - 380px), var(--marge) calc(50% - 378px), transparent calc(50% - 378px)),
+      repeating-linear-gradient(to right, transparent 0 31px, rgba(160,178,230,.45) 31px 32px),
+      repeating-linear-gradient(to bottom, transparent 0 31px, rgba(140,160,225,.7) 31px 32px),
+      repeating-linear-gradient(to bottom, transparent 0 7px, rgba(190,204,240,.55) 7px 8px); }
   }
-  @media (min-width: 560px) { .overlay { align-items: center; } .sheet { border-radius: 20px; } }
-  .sheet h3 { margin: 0 0 4px; font-size: 1.2rem; }
-  .sheet .when { color: var(--accent); font-weight: 600; margin: 0 0 16px; }
-  .sheet label { display: block; font-size: .9rem; color: var(--muted); margin-bottom: 6px; }
-  .sheet input {
-    width: 100%; font: inherit; font-size: 1.1rem; padding: 12px 14px; border-radius: 10px;
-    border: 1.5px solid var(--line); outline: none;
+  .copie .wrap { padding-left: 52px; }
+  @media (min-width: 720px) { .copie .wrap { padding-left: 20px; } }
+  h1 {
+    font: 800 clamp(2rem, 7vw, 3.1rem)/1.02 var(--titre); letter-spacing: -0.025em;
+    color: var(--encre-fonce); margin: 0 0 14px; max-width: 14ch;
   }
-  .sheet input:focus { border-color: var(--accent); }
-  .actions { display: flex; gap: 10px; margin-top: 16px; }
-  .btn { flex: 1; font: inherit; font-weight: 600; padding: 13px; border-radius: 10px; border: 0; cursor: pointer; }
-  .btn.primary { background: var(--accent); color: var(--accent-ink); }
-  .btn.primary[disabled] { opacity: .6; cursor: wait; }
-  .btn.ghost { background: #efeee9; color: var(--ink); flex: 0 0 auto; padding: 13px 18px; }
-  .msg { margin-top: 12px; padding: 10px 12px; border-radius: 10px; font-size: .92rem; display: none; }
-  .msg.err { display: block; background: var(--err-soft); color: var(--err); }
+  .intro { margin: 0 0 18px; max-width: 34ch; font-size: 1.05rem; background: rgba(255,255,255,.85); display: inline; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+  .faits { list-style: none; padding: 0; margin: 18px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .faits li {
+    display: inline-flex; align-items: center; gap: 6px; background: var(--blanc);
+    border: 1.5px solid var(--encre); color: var(--encre); border-radius: 999px; padding: 4px 12px 4px 9px;
+    font-weight: 700; font-size: .92rem;
+  }
+  .faits svg { width: 17px; height: 17px; }
 
-  /* Confirmation */
-  .done { text-align: center; padding: 8px 0 4px; }
-  .done .check {
-    width: 64px; height: 64px; border-radius: 50%; background: var(--ok-soft); color: var(--ok);
-    display: grid; place-items: center; font-size: 34px; margin: 0 auto 12px;
+  main { padding: 26px 0 70px; }
+  .bloc { margin-bottom: 26px; }
+  h2 { font: 700 1.35rem/1.2 var(--titre); letter-spacing: -0.01em; margin: 0 0 4px; }
+  .aide { color: var(--gris); margin: 0 0 16px; }
+
+  /* ---------- Mon rendez-vous ---------- */
+  .mien { background: var(--blanc); border: 2px solid var(--graphite); border-radius: 18px; padding: 20px; box-shadow: 5px 5px 0 var(--graphite); }
+  .mien .qui { color: var(--gris); margin: 0 0 6px; }
+  .mien .quand { font: 800 1.55rem/1.15 var(--titre); margin: 0 0 4px; }
+  .fluo { background: linear-gradient(transparent 12%, var(--fluo) 12%, var(--fluo) 88%, transparent 88%); padding: 0 .15em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .mien .code { font-size: .95rem; color: var(--gris); margin: 8px 0 16px; }
+  .mien .code b { font-family: var(--titre); letter-spacing: .12em; color: var(--graphite); font-size: 1.05rem; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .btn {
+    appearance: none; border: 2px solid var(--encre); background: var(--encre); color: #fff;
+    border-radius: 12px; padding: 11px 16px; font-weight: 700; cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; line-height: 1.2;
+    transition: background .15s, transform .1s;
   }
-  .done h3 { margin-bottom: 8px; }
-  .done p { margin: 0 0 4px; }
-  .done .big { font-size: 1.15rem; font-weight: 700; color: var(--ok); margin: 6px 0 14px; }
+  .btn:hover { background: var(--encre-fonce); border-color: var(--encre-fonce); }
+  .btn:active { transform: translateY(1px); }
+  .btn[disabled] { opacity: .55; cursor: wait; }
+  .btn.sec { background: var(--blanc); color: var(--encre); }
+  .btn.sec:hover { background: var(--encre-pale); }
+  .btn.discret { background: transparent; border-color: transparent; color: var(--gris); padding-left: 8px; padding-right: 8px; }
+  .btn.discret:hover { color: var(--marge); background: #fdecef; }
+  .btn.plein { width: 100%; padding: 15px; font-size: 1.05rem; }
+  .btn svg { width: 18px; height: 18px; flex: none; }
+  .lien { background: none; border: 0; padding: 0; color: var(--encre); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font-weight: 700; }
+
+  /* ---------- Jours & créneaux ---------- */
+  .jour { display: grid; grid-template-columns: 64px 1fr; gap: 16px; padding: 18px 0; border-top: 1px solid var(--bord); }
+  .jour:first-of-type { border-top: 0; padding-top: 4px; }
+  .date { text-align: center; padding-top: 2px; }
+  .date .num { font: 800 2.2rem/1 var(--titre); color: var(--encre-fonce); display: block; }
+  .date .mois { font-weight: 700; color: var(--marge); font-size: .9rem; }
+  .date .sem { display: block; font-size: .8rem; color: var(--gris); margin-top: 2px; }
+  .jour h3 { font: 700 1.05rem/1.3 var(--titre); margin: 0 0 10px; }
+  .jour h3 small { font: 400 .88rem var(--texte); color: var(--gris); margin-left: 6px; }
+  .heures { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+  .h {
+    appearance: none; border: 1.5px solid var(--ligne); background: var(--blanc); color: var(--encre);
+    border-radius: 10px; padding: 11px 4px; font-weight: 700; font-size: 1.02rem; cursor: pointer;
+    transition: border-color .12s, background .12s;
+  }
+  .h:hover { border-color: var(--encre); background: var(--encre-pale); }
+  .h[disabled] { color: #a9aebd; background: transparent; border-style: dashed; border-color: #d7dbe6; cursor: not-allowed; font-weight: 400; }
+  .h.moi, .h.moi[disabled] { background: var(--fluo); border: 2px solid var(--graphite); color: var(--graphite); font-weight: 700; cursor: default; }
+  .vide, .ferme { background: var(--blanc); border: 1.5px dashed var(--bord); border-radius: 16px; padding: 28px 20px; text-align: center; color: var(--gris); }
+  .ferme h2 { color: var(--graphite); }
+  .pied { margin-top: 26px; color: var(--gris); font-size: .95rem; }
+  .statut { text-align: center; color: var(--gris); padding: 40px 0; }
+
+  /* ---------- Fenêtre ---------- */
+  .voile { position: fixed; inset: 0; background: rgba(18,22,44,.5); display: none; align-items: flex-end; justify-content: center; z-index: 20; }
+  .voile.ouvert { display: flex; }
+  .fenetre {
+    background: var(--blanc); width: 100%; max-width: 520px; max-height: 92vh; overflow-y: auto;
+    border-radius: 22px 22px 0 0; padding: 22px 20px calc(22px + env(safe-area-inset-bottom));
+    animation: monte .22s ease-out;
+  }
+  @media (min-width: 600px) { .voile { align-items: center; } .fenetre { border-radius: 22px; } }
+  @keyframes monte { from { transform: translateY(24px); opacity: .4; } to { transform: none; opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .fenetre, .coche { animation: none !important; } }
+  .tete { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+  .etape { color: var(--gris); font-size: .9rem; font-weight: 700; }
+  .fermer { appearance: none; border: 0; background: var(--fond); width: 38px; height: 38px; border-radius: 50%; cursor: pointer; display: grid; place-items: center; flex: none; }
+  .fermer svg { width: 18px; height: 18px; }
+  .fenetre h2 { font-size: 1.5rem; margin-bottom: 6px; }
+  .rappel { display: inline-block; font-weight: 700; margin: 0 0 16px; }
+
+  .prenoms { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; margin-bottom: 14px; }
+  .p {
+    appearance: none; border: 1.5px solid var(--bord); background: var(--blanc); border-radius: 999px;
+    padding: 11px 10px; font-weight: 700; cursor: pointer; text-align: center; overflow-wrap: anywhere;
+  }
+  .p:hover { border-color: var(--encre); background: var(--encre-pale); color: var(--encre); }
+  .p[disabled] { color: #a9aebd; border-style: dashed; cursor: not-allowed; font-weight: 400; background: transparent; }
+  .note { color: var(--gris); font-size: .92rem; margin: 0; }
+
+  fieldset { border: 0; padding: 0; margin: 0 0 18px; min-width: 0; }
+  legend { font-weight: 700; margin-bottom: 8px; padding: 0; }
+  .choix { display: flex; flex-wrap: wrap; gap: 7px; }
+  .choix label { position: relative; }
+  .choix input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .choix span {
+    display: inline-block; border: 1.5px solid var(--bord); border-radius: 999px; padding: 8px 14px;
+    font-size: .96rem; cursor: pointer; transition: background .12s, border-color .12s; user-select: none;
+  }
+  .choix label:hover span { border-color: var(--encre); }
+  .choix input:checked + span { background: var(--encre); border-color: var(--encre); color: #fff; font-weight: 700; }
+  .choix input:focus-visible + span { outline: 3px solid var(--encre); outline-offset: 2px; }
+  textarea, .champ {
+    width: 100%; border: 1.5px solid var(--bord); border-radius: 12px; padding: 12px 14px; background: var(--blanc);
+    font-size: 1rem; resize: vertical;
+  }
+  textarea:focus, .champ:focus { border-color: var(--encre); outline: none; }
+  .champ.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(--titre); font-weight: 700; font-size: 1.2rem; }
+  label.titre-champ { display: block; font-weight: 700; margin: 0 0 8px; }
+  .confid { display: flex; gap: 8px; align-items: flex-start; background: var(--encre-pale); border-radius: 12px; padding: 10px 12px; font-size: .92rem; margin: 0 0 18px; color: var(--encre-fonce); }
+  .confid svg { width: 18px; height: 18px; flex: none; margin-top: 2px; }
+  .msg { display: none; margin: 12px 0 0; padding: 11px 13px; border-radius: 12px; background: #fdecef; color: #a3142b; font-size: .95rem; }
+  .msg.vu { display: block; }
+  .bas { margin-top: 18px; display: grid; gap: 10px; }
+
+  .fini { text-align: center; }
+  .coche { width: 76px; height: 76px; border-radius: 50%; background: var(--fluo); border: 2px solid var(--graphite); display: grid; place-items: center; margin: 6px auto 14px; animation: pop .35s cubic-bezier(.2,1.4,.4,1); }
+  .coche svg { width: 38px; height: 38px; }
+  @keyframes pop { from { transform: scale(.4); } to { transform: scale(1); } }
+  .fini .quand { font: 800 1.45rem/1.2 var(--titre); margin: 4px 0 14px; }
+  .boite-code { border: 2px dashed var(--graphite); border-radius: 14px; padding: 12px; margin: 0 0 16px; }
+  .boite-code b { display: block; font: 800 1.9rem/1.1 var(--titre); letter-spacing: .2em; margin: 2px 0; }
+  .boite-code small { color: var(--gris); }
+  .agenda-bloc { margin: 0 0 12px; }
+  .agenda-titre { font-weight: 700; font-size: .95rem; margin: 0 0 8px; }
+  .fini .agenda-titre { text-align: left; }
+  .agenda { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .agenda .btn { white-space: nowrap; padding-left: 10px; padding-right: 10px; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom)); transform: translate(-50%, 30px);
+    background: var(--graphite); color: #fff; padding: 12px 18px; border-radius: 12px; font-weight: 700;
+    opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 30; max-width: calc(100% - 40px);
+  }
+  .toast.vu { opacity: 1; transform: translate(-50%, 0); }
+  .demo { background: #fff8cc; border: 1px solid #ecd96b; border-radius: 12px; padding: 10px 14px; font-size: .9rem; margin-bottom: 20px; }
 </style>
 </head>
 <body>
-<main>
-  <h1 id="titre"></h1>
-  <p class="sub" id="soustitre"></p>
-  <div id="bannieres"></div>
-  <div id="liste"><p class="status">Chargement des créneaux…</p></div>
-</main>
+<header class="copie">
+  <div class="wrap">
+    <h1 id="titre">Rendez-vous avant le conseil de classe</h1>
+    <p class="intro">Choisis un créneau, dis-moi comment s'est passé ton semestre, et c'est réservé.</p>
+    <ul class="faits" id="faits"></ul>
+  </div>
+</header>
 
-<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="fen-titre">
-  <div class="sheet" id="sheet"></div>
-</div>
+<main class="wrap"><div id="app"><p class="statut">Chargement des créneaux…</p></div></main>
+
+<div class="voile" id="voile"><div class="fenetre" id="fenetre" role="dialog" aria-modal="true" aria-labelledby="fen-titre"></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 /* ============================================================
-   CONFIGURATION — à modifier
+   CONFIGURATION — adresse de l'application Web Google (/exec).
+   Laisser vide pour essayer la page en mode démonstration.
    ============================================================ */
 const CONFIG = {
-  // Collez ici l'adresse de l'application Web Google (se termine par /exec).
-  // Laissez vide pour tester la page en mode démonstration.
-  url: 'https://script.google.com/macros/s/AKfycbys1yzkm4J_CDZxrvUdkEqiI57nolZY-yb2kjC_F4IjovXMgQDxoDh9gW-z9U5qKBb_/exec',
-  titre: 'Rendez-vous avant le conseil de classe',
-  sousTitre: 'Clique sur un créneau libre, écris ton prénom, c\'est réservé.'
+  url: 'https://script.google.com/macros/s/AKfycbys1yzkm4J_CDZxrvUdkEqiI57nolZY-yb2kjC_F4IjovXMgQDxoDh9gW-z9U5qKBb_/exec'
 };
 /* ============================================================ */
 
 const DEMO = !CONFIG.url;
-const CLE_LOCALE = 'rdv-conseil:' + (CONFIG.url || 'demo');
+const CLE = 'rdv-conseil-v2:' + (CONFIG.url || 'demo');
 const $ = (id) => document.getElementById(id);
-let creneaux = [];
-let choix = null;
-let envoiEnCours = false;
 
-document.title = CONFIG.titre;
-$('titre').textContent = CONFIG.titre;
-$('soustitre').textContent = CONFIG.sousTitre;
+const ICONES = {
+  lieu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.1-7-11.5A7 7 0 0 1 19 9.5C19 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+  duree: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  places: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  agenda: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/></svg>',
+  fermer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  coche: '<svg viewBox="0 0 24 24" fill="none" stroke="#1d2233" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  cadenas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>'
+};
 
-/* ---------- Mémoire locale (le rendez-vous de l'élève sur cet appareil) ---------- */
-function lireMonRdv() { try { return JSON.parse(localStorage.getItem(CLE_LOCALE)); } catch (e) { return null; } }
-function enregistrerMonRdv(r) { try { localStorage.setItem(CLE_LOCALE, JSON.stringify(r)); } catch (e) {} }
-
-/* ---------- Accès aux données ---------- */
-const demoData = (() => {
-  const l = []; let id = 2;
-  for (const jour of ['Lundi 30 novembre', 'Mardi 1er décembre']) {
-    for (let m = 16 * 60 + 30; m < 18 * 60; m += 10) {
-      l.push({ id: id++, jour, heure: Math.floor(m / 60) + 'h' + String(m % 60).padStart(2, '0'), libre: Math.random() > 0.3, prenom: '' });
-    }
+/* ---------- petit outil pour créer des éléments sans innerHTML ---------- */
+function h(tag, props, ...enfants) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') e.className = v;
+    else if (k === 'icone') e.insertAdjacentHTML('afterbegin', ICONES[v]);
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else if (v === true) e.setAttribute(k, '');
+    else e.setAttribute(k, v);
   }
-  return l;
-})();
-
-async function api(methode, corps) {
-  if (DEMO) {
-    await new Promise(r => setTimeout(r, 350));
-    if (methode === 'GET') return { ok: true, creneaux: demoData.map(({ prenom, ...c }) => c) };
-    const c = demoData.find(x => x.id === corps.id);
-    if (!c || !c.libre) return { ok: false, code: 'pris', erreur: 'Oups, ce créneau vient d\'être pris. Choisis-en un autre.' };
-    c.libre = false; c.prenom = corps.prenom;
-    return { ok: true, jour: c.jour, heure: c.heure, prenom: corps.prenom };
-  }
-  const options = methode === 'GET'
-    ? { method: 'GET' }
-    // Pas d'en-tête Content-Type : la requête reste « simple » et passe sans souci vers Google.
-    : { method: 'POST', body: JSON.stringify(corps) };
-  const url = methode === 'GET' ? CONFIG.url + (CONFIG.url.includes('?') ? '&' : '?') + 't=' + Date.now() : CONFIG.url;
-  const rep = await fetch(url, options);
-  if (!rep.ok) throw new Error('HTTP ' + rep.status);
-  return rep.json();
+  for (const x of enfants.flat()) if (x != null && x !== false) e.append(x instanceof Node ? x : String(x));
+  return e;
 }
 
-/* ---------- Affichage ---------- */
-function afficherBannieres() {
-  const b = $('bannieres');
-  b.replaceChildren();
-  if (DEMO) {
-    const d = document.createElement('div');
-    d.className = 'banner demo';
-    d.textContent = 'Mode démonstration : les réservations ne sont pas enregistrées. Ajoutez l\'adresse du script Google dans CONFIG.url pour activer la page.';
-    b.append(d);
+/* ---------- mémoire de l'appareil ---------- */
+function lireMien() { try { return JSON.parse(localStorage.getItem(CLE)); } catch (e) { return null; } }
+function ecrireMien(m) { try { m ? localStorage.setItem(CLE, JSON.stringify(m)) : localStorage.removeItem(CLE); } catch (e) {} }
+
+let etat = null;
+let mien = lireMien();
+let brouillon = null;
+let envoi = false;
+
+/* ---------- dates : « Lundi 30 novembre » + « 16h30 » → Date ---------- */
+const MOIS = ['janvier','fevrier','mars','avril','mai','juin','juillet','aout','septembre','octobre','novembre','decembre'];
+const MOIS_COURTS = ['janv.','févr.','mars','avril','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+const sansAccent = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+function lireDate(jour) {
+  const t = sansAccent(jour);
+  let j, m, a;
+  let x = t.match(/(\d{1,2})\s*(?:er)?\s+([a-z]+)\.?(?:\s+(\d{4}))?/);
+  if (x) {
+    const mot = x[2];
+    const i = MOIS.findIndex((n) => mot.length >= 3 && (n.startsWith(mot) || mot.startsWith(n)));
+    if (i >= 0) { j = +x[1]; m = i; a = x[3] ? +x[3] : null; }
   }
-  const mien = lireMonRdv();
-  if (mien) {
-    const d = document.createElement('div');
-    d.className = 'banner mine';
-    const s = document.createElement('strong');
-    s.textContent = mien.jour + ' à ' + mien.heure;
-    d.append('✓ ' + mien.prenom + ', ton rendez-vous est réservé : ', s, '.');
-    b.append(d);
+  if (j == null) {
+    x = t.match(/(\d{1,2})\s*[\/.]\s*(\d{1,2})(?:\s*[\/.]\s*(\d{2,4}))?/);
+    if (x) { j = +x[1]; m = +x[2] - 1; a = x[3] ? (x[3].length === 2 ? 2000 + +x[3] : +x[3]) : null; }
   }
+  if (j == null || m < 0 || m > 11) return null;
+  if (a == null) {
+    const auj = new Date();
+    a = auj.getFullYear();
+    if (new Date(a, m, j) < new Date(auj.getFullYear(), auj.getMonth(), auj.getDate() - 60)) a++;
+  }
+  return { j, m, a };
+}
+function lireDebut(jour, heure) {
+  const d = lireDate(jour);
+  const x = String(heure).match(/(\d{1,2})\s*[h:]\s*(\d{2})?/i);
+  if (!d || !x) return null;
+  return new Date(d.a, d.m, d.j, +x[1], x[2] ? +x[2] : 0);
 }
 
-function afficherListe() {
-  const liste = $('liste');
-  liste.replaceChildren();
-  if (!creneaux.length) {
-    const p = document.createElement('div');
-    p.className = 'empty';
-    p.textContent = 'Aucun créneau n\'est proposé pour le moment. Reviens un peu plus tard !';
-    liste.append(p);
-    return;
-  }
-  const jours = new Map();
-  for (const c of creneaux) {
-    if (!jours.has(c.jour)) jours.set(c.jour, []);
-    jours.get(c.jour).push(c);
-  }
-  for (const [jour, cs] of jours) {
-    const bloc = document.createElement('section');
-    bloc.className = 'day';
-    const h = document.createElement('h2');
-    h.textContent = jour;
-    const libres = cs.filter(c => c.libre).length;
-    const small = document.createElement('small');
-    small.textContent = libres === 0 ? 'complet' : libres + (libres > 1 ? ' créneaux libres' : ' créneau libre');
-    h.append(small);
-    const grille = document.createElement('div');
-    grille.className = 'slots';
-    for (const c of cs) {
-      const btn = document.createElement('button');
-      btn.className = 'slot';
-      btn.type = 'button';
-      btn.textContent = c.heure;
-      if (c.libre) {
-        btn.setAttribute('aria-label', 'Réserver ' + jour + ' à ' + c.heure);
-        btn.addEventListener('click', () => ouvrir(c));
-      } else {
-        btn.disabled = true;
-        btn.setAttribute('aria-label', jour + ' à ' + c.heure + ' : déjà pris');
-      }
-      grille.append(btn);
-    }
-    bloc.append(h, grille);
-    liste.append(bloc);
-  }
+/* ---------- agenda ---------- */
+function deuxChiffres(n) { return String(n).padStart(2, '0'); }
+function fmtLocal(d) { return d.getFullYear() + deuxChiffres(d.getMonth() + 1) + deuxChiffres(d.getDate()) + 'T' + deuxChiffres(d.getHours()) + deuxChiffres(d.getMinutes()) + '00'; }
+function ics(s) { return String(s).replace(/\\/g, '\\\\').replace(/[,;]/g, (c) => '\\' + c).replace(/\n/g, '\\n'); }
+
+function boutonsAgenda(m) {
+  const debut = lireDebut(m.jour, m.heure);
+  if (!debut) return null;
+  const fin = new Date(debut.getTime() + (etat?.duree || 10) * 60000);
+  const titre = (etat?.titre || 'Rendez-vous avant le conseil de classe');
+  const lieu = etat?.lieu || '';
+  const google = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+    + '&text=' + encodeURIComponent(titre)
+    + '&dates=' + fmtLocal(debut) + '/' + fmtLocal(fin)
+    + '&ctz=Europe/Paris'
+    + (lieu ? '&location=' + encodeURIComponent(lieu) : '');
+  const maintenant = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  const contenu = [
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//RDV conseil de classe//FR', 'CALSCALE:GREGORIAN', 'BEGIN:VEVENT',
+    'UID:rdv-' + fmtLocal(debut) + '-' + Math.random().toString(36).slice(2) + '@monrdv',
+    'DTSTAMP:' + maintenant, 'DTSTART:' + fmtLocal(debut), 'DTEND:' + fmtLocal(fin),
+    'SUMMARY:' + ics(titre), lieu ? 'LOCATION:' + ics(lieu) : null,
+    'BEGIN:VALARM', 'TRIGGER:-PT1H', 'ACTION:DISPLAY', 'DESCRIPTION:' + ics(titre), 'END:VALARM',
+    'END:VEVENT', 'END:VCALENDAR'
+  ].filter(Boolean).join('\r\n');
+  const fichier = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(contenu);
+  return h('div', { class: 'agenda-bloc' },
+    h('p', { class: 'agenda-titre' }, 'Ajouter à mon agenda\u00a0:'),
+    h('div', { class: 'agenda' },
+      h('a', { class: 'btn sec', href: google, target: '_blank', rel: 'noopener', icone: 'agenda' }, 'Google'),
+      h('a', { class: 'btn sec', href: fichier, download: 'rendez-vous.ics', icone: 'agenda' }, 'iPhone / Outlook')));
 }
 
-async function charger() {
-  let minuteur;
+/* ---------- accès aux données ---------- */
+async function api(action, donnees) {
+  if (DEMO) return demo(action, donnees || {});
+  const ctrl = new AbortController();
+  const minuteur = setTimeout(() => ctrl.abort(), 25000);
   try {
-    const delai = new Promise((_, rej) => { minuteur = setTimeout(() => rej(new Error('délai')), 20000); });
-    const r = await Promise.race([api('GET'), delai]);
-    if (!r.ok) throw new Error(r.erreur || 'erreur');
-    creneaux = r.creneaux;
-    afficherListe();
-  } catch (e) {
-    const liste = $('liste');
-    liste.replaceChildren();
-    const p = document.createElement('p');
-    p.className = 'status';
-    const btn = document.createElement('button');
-    btn.textContent = 'Réessayer';
-    btn.addEventListener('click', () => { liste.innerHTML = '<p class="status">Chargement des créneaux…</p>'; charger(); });
-    p.append('Impossible de charger les créneaux. ', btn);
-    liste.append(p);
+    const rep = action === 'etat'
+      ? await fetch(CONFIG.url + '?action=etat&t=' + Date.now(), { signal: ctrl.signal })
+      // sans en-tête Content-Type : requête « simple », acceptée par Google sans pré-vérification
+      : await fetch(CONFIG.url, { method: 'POST', body: JSON.stringify({ action, ...donnees }), signal: ctrl.signal });
+    if (!rep.ok) throw new Error('HTTP ' + rep.status);
+    return await rep.json();
   } finally {
     clearTimeout(minuteur);
   }
 }
 
-/* ---------- Fenêtre de réservation ---------- */
-function ouvrir(c) {
-  choix = c;
-  const sheet = $('sheet');
-  sheet.innerHTML = `
-    <h3 id="fen-titre">Réserver ce créneau</h3>
-    <p class="when"></p>
-    <form id="form" autocomplete="off">
-      <label for="prenom">Ton prénom</label>
-      <input id="prenom" name="prenom" maxlength="40" required autocapitalize="words" enterkeyhint="done">
-      <div class="msg" id="msg" role="alert"></div>
-      <div class="actions">
-        <button type="button" class="btn ghost" id="annuler">Annuler</button>
-        <button type="submit" class="btn primary" id="valider">Réserver</button>
-      </div>
-    </form>`;
-  sheet.querySelector('.when').textContent = c.jour + ' · ' + c.heure;
-  const mien = lireMonRdv();
-  if (mien) $('prenom').value = mien.prenom;
-  $('annuler').addEventListener('click', fermer);
-  $('form').addEventListener('submit', reserver);
-  $('overlay').classList.add('open');
-  setTimeout(() => $('prenom').focus(), 30);
-}
-
-function fermer() {
-  if (envoiEnCours) return;
-  $('overlay').classList.remove('open');
-  choix = null;
-}
-
-async function reserver(ev) {
-  ev.preventDefault();
-  if (envoiEnCours || !choix) return;
-  const prenom = $('prenom').value.replace(/\s+/g, ' ').trim();
-  const msg = $('msg');
-  if (!prenom) { msg.textContent = 'Écris ton prénom.'; msg.className = 'msg err'; return; }
-  envoiEnCours = true;
-  const btn = $('valider');
-  btn.disabled = true; btn.textContent = 'Envoi…';
-  msg.className = 'msg';
+async function actualiser() {
   try {
-    const r = await api('POST', { id: choix.id, jour: choix.jour, heure: choix.heure, prenom });
-    if (r.ok) {
-      enregistrerMonRdv({ prenom: r.prenom, jour: r.jour, heure: r.heure });
-      confirmer(r);
-      charger();
-      afficherBannieres();
-    } else {
-      msg.textContent = r.erreur || 'Impossible de réserver.';
-      msg.className = 'msg err';
-      if (r.code === 'pris' || r.code === 'change') charger();
-    }
+    const r = await api('etat');
+    if (!r.ok) throw new Error(r.erreur);
+    etat = r;
   } catch (e) {
-    msg.textContent = 'Connexion impossible. Vérifie ta connexion internet et réessaie.';
-    msg.className = 'msg err';
-  } finally {
-    envoiEnCours = false;
-    if (document.body.contains(btn)) { btn.disabled = false; btn.textContent = 'Réserver'; }
+    if (!etat) {
+      $('app').replaceChildren(h('p', { class: 'statut' }, 'Impossible de charger les créneaux. ',
+        h('button', { class: 'lien', onclick: () => { $('app').replaceChildren(h('p', { class: 'statut' }, 'Chargement…')); actualiser(); } }, 'Réessayer')));
+      return;
+    }
+  }
+  afficher();
+}
+
+/* ---------- page principale ---------- */
+function afficher() {
+  document.title = etat.titre;
+  $('titre').textContent = etat.titre;
+
+  const libres = etat.creneaux.filter((c) => c.libre).length;
+  const faits = $('faits');
+  faits.replaceChildren();
+  if (etat.lieu) faits.append(h('li', { icone: 'lieu' }, etat.lieu));
+  faits.append(h('li', { icone: 'duree' }, etat.duree + ' min'));
+  if (!etat.ferme) faits.append(h('li', { icone: 'places' }, libres + (libres > 1 ? ' places libres' : ' place libre')));
+
+  // Mon rendez-vous est-il toujours valable ?
+  if (mien && !etat.eleves.some((e) => e.prenom === mien.prenom && e.inscrit)) { mien = null; ecrireMien(null); }
+  if (mien) {
+    const c = etat.creneaux.find((x) => x.id === mien.id && !x.libre && x.jour === mien.jour && x.heure === mien.heure);
+    if (!c) { // le professeur a pu déplacer les lignes : on garde le rendez-vous mais sans repère de ligne
+      mien.id = (etat.creneaux.find((x) => !x.libre && x.jour === mien.jour && x.heure === mien.heure) || {}).id ?? null;
+    }
+  }
+
+  const app = $('app');
+  app.replaceChildren();
+  if (DEMO) app.append(h('div', { class: 'demo' }, 'Mode démonstration : rien n\'est enregistré.'));
+
+  if (etat.ferme) {
+    app.append(h('div', { class: 'ferme' }, h('h2', null, 'Les rendez-vous sont terminés'), h('p', null, 'Le conseil de classe a eu lieu. À bientôt !')));
+    return;
+  }
+
+  if (mien) app.append(carteMien());
+
+  const blocCreneaux = h('section', { class: 'bloc', id: 'creneaux' },
+    h('h2', null, mien ? 'Changer de créneau' : 'Choisis ton créneau'),
+    h('p', { class: 'aide' }, mien ? 'Touche un autre horaire libre pour déplacer ton rendez-vous.' : 'Touche un horaire libre.'));
+
+  if (!etat.creneaux.length) {
+    blocCreneaux.append(h('div', { class: 'vide' }, 'Aucun créneau n\'est proposé pour l\'instant. Reviens un peu plus tard.'));
+  } else {
+    const jours = new Map();
+    etat.creneaux.forEach((c) => { if (!jours.has(c.jour)) jours.set(c.jour, []); jours.get(c.jour).push(c); });
+    for (const [jour, cs] of jours) blocCreneaux.append(blocJour(jour, cs));
+  }
+  app.append(blocCreneaux);
+
+  if (!mien) {
+    app.append(h('p', { class: 'pied' }, 'Tu as déjà réservé sur un autre appareil ? ',
+      h('button', { class: 'lien', onclick: ouvrirRetrouver }, 'Retrouver mon rendez-vous')));
   }
 }
 
-function confirmer(r) {
-  const sheet = $('sheet');
-  sheet.innerHTML = `
-    <div class="done">
-      <div class="check" aria-hidden="true">✓</div>
-      <h3 id="fen-titre">C'est réservé !</h3>
-      <p class="qui"></p>
-      <p class="big"></p>
-      <button type="button" class="btn primary" id="ok" style="width:100%">Parfait</button>
-    </div>`;
-  sheet.querySelector('.qui').textContent = 'Merci ' + r.prenom + ', ton rendez-vous :';
-  sheet.querySelector('.big').textContent = r.jour + ' à ' + r.heure;
-  $('ok').addEventListener('click', fermer);
-  $('ok').focus();
+function blocJour(jour, cs) {
+  const d = lireDate(jour);
+  const semaine = (jour.match(/^[A-Za-zÀ-ÿ]+/) || [''])[0];
+  const libres = cs.filter((c) => c.libre).length;
+  const date = d
+    ? h('div', { class: 'date', 'aria-hidden': 'true' }, h('span', { class: 'num' }, d.j), h('span', { class: 'mois' }, MOIS_COURTS[d.m]), semaine && h('span', { class: 'sem' }, semaine.slice(0, 3).toLowerCase() + '.'))
+    : h('div', { class: 'date' });
+  const heures = h('div', { class: 'heures' });
+  cs.forEach((c) => {
+    const estMoi = mien && !c.libre && c.jour === mien.jour && c.heure === mien.heure;
+    if (estMoi) heures.append(h('button', { class: 'h moi', type: 'button', disabled: true, 'aria-label': jour + ' à ' + c.heure + ' : ton rendez-vous' }, c.heure));
+    else if (c.libre) heures.append(h('button', { class: 'h', type: 'button', 'aria-label': 'Choisir ' + jour + ' à ' + c.heure, onclick: () => choisirCreneau(c) }, c.heure));
+    else heures.append(h('button', { class: 'h', type: 'button', disabled: true, 'aria-label': jour + ' à ' + c.heure + ' : déjà pris' }, c.heure));
+  });
+  return h('div', { class: 'jour' }, date,
+    h('div', null, h('h3', null, jour, h('small', null, libres === 0 ? 'complet' : libres + (libres > 1 ? ' libres' : ' libre'))), heures));
 }
 
-$('overlay').addEventListener('click', (e) => { if (e.target.id === 'overlay') fermer(); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') fermer(); });
+function carteMien() {
+  return h('section', { class: 'bloc mien' },
+    h('p', { class: 'qui' }, mien.prenom + ', ton rendez-vous est réservé\u00a0:'),
+    h('p', { class: 'quand' }, h('span', { class: 'fluo' }, mien.jour + ' à ' + mien.heure)),
+    h('p', { class: 'code' }, 'Ton code\u00a0: ', h('b', null, mien.code), ' (il te permet de modifier ou d\'annuler depuis un autre appareil)'),
+    boutonsAgenda(mien),
+    h('div', { class: 'actions' },
+      h('button', { class: 'btn sec', onclick: () => ouvrirQuestions({ jour: mien.jour, heure: mien.heure, id: mien.id }, true) }, 'Modifier mes réponses'),
+      h('button', { class: 'btn discret', onclick: ouvrirAnnuler }, 'Annuler le rendez-vous')));
+}
 
-afficherBannieres();
-charger();
+/* ---------- fenêtre ---------- */
+function ouvrirFenetre(...contenu) {
+  const f = $('fenetre');
+  f.replaceChildren(...contenu);
+  $('voile').classList.add('ouvert');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => (f.querySelector('[data-focus]') || f.querySelector('button, input, select, textarea, a'))?.focus(), 40);
+}
+function fermerFenetre() {
+  if (envoi) return;
+  $('voile').classList.remove('ouvert');
+  document.body.style.overflow = '';
+  brouillon = null;
+}
+function tete(etape) {
+  return h('div', { class: 'tete' }, h('span', { class: 'etape' }, etape || ''),
+    h('button', { class: 'fermer', type: 'button', 'aria-label': 'Fermer', icone: 'fermer', onclick: fermerFenetre }));
+}
+function zoneMessage() { return h('p', { class: 'msg', role: 'alert' }); }
+function montrerErreur(zone, texte) { zone.textContent = texte; zone.classList.add('vu'); }
+
+function toast(texte) {
+  const t = $('toast');
+  t.textContent = texte;
+  t.classList.add('vu');
+  clearTimeout(toast.m);
+  toast.m = setTimeout(() => t.classList.remove('vu'), 3200);
+}
+
+/* Étape 1 : choisir son prénom (nouvelle réservation) */
+function choisirCreneau(c) {
+  if (mien) return ouvrirQuestions(c, false);
+  brouillon = { creneau: c, prenom: null, reponses: {}, message: '' };
+  const liste = h('div', { class: 'prenoms' });
+  [...etat.eleves].sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr')).forEach((e) => {
+    liste.append(h('button', {
+      class: 'p', type: 'button', disabled: e.inscrit,
+      'aria-label': e.inscrit ? e.prenom + ' : a déjà réservé' : e.prenom,
+      onclick: () => { brouillon.prenom = e.prenom; ouvrirQuestions(c, false); }
+    }, e.inscrit ? e.prenom + ' ✓' : e.prenom));
+  });
+  ouvrirFenetre(
+    tete('Étape 1 sur 2'),
+    h('h2', { id: 'fen-titre' }, 'Qui es-tu ?'),
+    h('p', { class: 'rappel' }, h('span', { class: 'fluo' }, c.jour + ' à ' + c.heure)),
+    liste,
+    h('p', { class: 'note' }, 'Ton prénom est grisé\u00a0? Tu as déjà un rendez-vous\u00a0: ',
+      h('button', { class: 'lien', onclick: ouvrirRetrouver }, 'retrouve-le avec ton code'), '.'));
+}
+
+/* Étape 2 : préparer l'entretien (aussi utilisée pour modifier ses réponses ou changer de créneau) */
+function ouvrirQuestions(c, memeCreneau) {
+  const modif = !!mien;
+  if (!brouillon) brouillon = { creneau: c, prenom: mien?.prenom, reponses: { ...(mien?.reponses || {}) }, message: mien?.message || '' };
+  brouillon.creneau = c;
+  if (modif) { brouillon.prenom = mien.prenom; }
+
+  const form = h('form', { novalidate: true });
+  etat.questions.forEach((q, i) => {
+    const groupe = h('div', { class: 'choix' });
+    q.choix.forEach((choix) => {
+      const input = h('input', { type: 'radio', name: 'q' + i, value: choix, checked: brouillon.reponses[q.q] === choix });
+      input.addEventListener('change', () => { brouillon.reponses[q.q] = choix; form.querySelector('.msg')?.classList.remove('vu'); });
+      groupe.append(h('label', null, input, h('span', null, choix)));
+    });
+    form.append(h('fieldset', null, h('legend', null, q.q), groupe));
+  });
+  const zone = h('textarea', { id: 'message', rows: 3, maxlength: 1000, placeholder: 'Une question, une remarque, un sujet dont tu veux parler…' });
+  zone.value = brouillon.message || '';
+  zone.addEventListener('input', () => { brouillon.message = zone.value; });
+  const msg = zoneMessage();
+  const libelle = memeCreneau ? 'Enregistrer mes réponses' : modif ? 'Déplacer mon rendez-vous' : 'Réserver ce créneau';
+  const bouton = h('button', { class: 'btn plein', type: 'submit' }, libelle);
+  form.append(
+    h('label', { class: 'titre-champ', for: 'message' }, 'Autre chose à me dire ? (facultatif)'),
+    zone, msg,
+    h('div', { class: 'bas' }, bouton,
+      !modif && h('button', { class: 'btn discret', type: 'button', onclick: () => choisirCreneau(c) }, 'Changer de prénom')));
+  form.addEventListener('submit', (ev) => { ev.preventDefault(); envoyerReservation(bouton, msg, libelle); });
+
+  ouvrirFenetre(
+    tete(modif ? (memeCreneau ? 'Mes réponses' : 'Nouveau créneau') : 'Étape 2 sur 2'),
+    h('h2', { id: 'fen-titre' }, 'Prépare ton entretien'),
+    h('p', { class: 'rappel' }, brouillon.prenom + ', ', h('span', { class: 'fluo' }, c.jour + ' à ' + c.heure)),
+    h('p', { class: 'confid', icone: 'cadenas' }, 'Seul ton professeur verra tes réponses.'),
+    form);
+}
+
+async function envoyerReservation(bouton, msg, libelle) {
+  if (envoi) return;
+  const manque = etat.questions.find((q) => !brouillon.reponses[q.q]);
+  if (manque) { montrerErreur(msg, 'Réponds à toutes les questions\u00a0: «\u00a0' + manque.q + '\u00a0»'); return; }
+  envoi = true;
+  bouton.disabled = true; bouton.textContent = 'Envoi…';
+  msg.classList.remove('vu');
+  const c = brouillon.creneau;
+  try {
+    const r = await api('reserver', {
+      prenom: brouillon.prenom, code: mien?.code, id: c.id, jour: c.jour, heure: c.heure,
+      reponses: brouillon.reponses, message: (brouillon.message || '').trim()
+    });
+    if (r.ok) {
+      const ancien = mien;
+      mien = { prenom: r.prenom, code: r.code, id: r.id, jour: r.jour, heure: r.heure, reponses: { ...brouillon.reponses }, message: (brouillon.message || '').trim() };
+      ecrireMien(mien);
+      envoi = false;
+      if (ancien && ancien.jour === r.jour && ancien.heure === r.heure) { fermerFenetre(); toast('Tes réponses sont enregistrées'); }
+      else ouvrirFini(!!ancien);
+      actualiser();
+      return;
+    }
+    montrerErreur(msg, r.erreur || 'Impossible de réserver.');
+    if (['pris', 'change', 'code', 'ferme'].includes(r.code)) actualiser();
+  } catch (e) {
+    montrerErreur(msg, 'Pas de connexion. Vérifie ton réseau et réessaie.');
+  }
+  envoi = false;
+  bouton.disabled = false; bouton.textContent = libelle;
+}
+
+/* Confirmation */
+function ouvrirFini(deplace) {
+  brouillon = null;
+  ouvrirFenetre(
+    tete(''),
+    h('div', { class: 'fini' },
+      h('div', { class: 'coche', icone: 'coche' }),
+      h('h2', { id: 'fen-titre' }, deplace ? 'Rendez-vous déplacé' : 'C\'est réservé !'),
+      h('p', { class: 'quand' }, h('span', { class: 'fluo' }, mien.jour + ' à ' + mien.heure)),
+      h('div', { class: 'boite-code' }, h('small', null, 'Ton code personnel'), h('b', null, mien.code), h('small', null, 'Garde-le pour modifier ou annuler depuis un autre appareil.')),
+      boutonsAgenda(mien),
+      h('button', { class: 'btn plein', 'data-focus': true, onclick: fermerFenetre }, 'Terminé')));
+}
+
+/* Annuler */
+function ouvrirAnnuler() {
+  const msg = zoneMessage();
+  const bouton = h('button', { class: 'btn plein', style: 'background:#c5223d;border-color:#c5223d' }, 'Oui, annuler mon rendez-vous');
+  bouton.addEventListener('click', async () => {
+    if (envoi) return;
+    envoi = true; bouton.disabled = true; bouton.textContent = 'Annulation…';
+    try {
+      const r = await api('annuler', { prenom: mien.prenom, code: mien.code });
+      if (r.ok) {
+        mien = null; ecrireMien(null); envoi = false; fermerFenetre(); toast('Rendez-vous annulé'); actualiser(); return;
+      }
+      montrerErreur(msg, r.erreur || 'Impossible d\'annuler.');
+    } catch (e) { montrerErreur(msg, 'Pas de connexion. Vérifie ton réseau et réessaie.'); }
+    envoi = false; bouton.disabled = false; bouton.textContent = 'Oui, annuler mon rendez-vous';
+  });
+  ouvrirFenetre(
+    tete(''),
+    h('h2', { id: 'fen-titre' }, 'Annuler ton rendez-vous ?'),
+    h('p', null, 'Le créneau du ', h('b', null, mien.jour + ' à ' + mien.heure), ' sera libéré et tes réponses effacées.'),
+    msg,
+    h('div', { class: 'bas' }, bouton, h('button', { class: 'btn sec', 'data-focus': true, onclick: fermerFenetre }, 'Non, garder mon rendez-vous')));
+}
+
+/* Retrouver son rendez-vous sur un autre appareil */
+function ouvrirRetrouver() {
+  const inscrits = etat.eleves.filter((e) => e.inscrit).sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr'));
+  if (!inscrits.length) {
+    ouvrirFenetre(tete(''), h('h2', { id: 'fen-titre' }, 'Retrouver mon rendez-vous'), h('p', null, 'Personne n\'a encore réservé. Choisis un créneau pour commencer.'),
+      h('button', { class: 'btn plein', onclick: fermerFenetre }, 'D\'accord'));
+    return;
+  }
+  const select = h('select', { class: 'champ', id: 'qui' }, h('option', { value: '' }, 'Choisis ton prénom'), inscrits.map((e) => h('option', { value: e.prenom }, e.prenom)));
+  const code = h('input', { class: 'champ code', id: 'code', maxlength: 4, autocomplete: 'off', autocapitalize: 'characters', inputmode: 'text', placeholder: 'XXXX' });
+  const msg = zoneMessage();
+  const bouton = h('button', { class: 'btn plein', type: 'submit' }, 'Retrouver mon rendez-vous');
+  const form = h('form', null,
+    h('label', { class: 'titre-champ', for: 'qui' }, 'Ton prénom'), select,
+    h('label', { class: 'titre-champ', for: 'code', style: 'margin-top:14px' }, 'Ton code (4 caractères)'), code,
+    msg, h('div', { class: 'bas' }, bouton));
+  form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    if (envoi) return;
+    if (!select.value || code.value.trim().length < 4) { montrerErreur(msg, 'Choisis ton prénom et tape ton code à 4 caractères.'); return; }
+    envoi = true; bouton.disabled = true; bouton.textContent = 'Recherche…';
+    try {
+      const r = await api('moi', { prenom: select.value, code: code.value.trim().toUpperCase() });
+      if (r.ok) {
+        mien = { prenom: r.prenom, code: r.code, id: r.id, jour: r.jour, heure: r.heure, reponses: r.reponses || {}, message: r.message || '' };
+        ecrireMien(mien); envoi = false; fermerFenetre(); afficher(); toast('Rendez-vous retrouvé'); return;
+      }
+      montrerErreur(msg, r.erreur || 'Prénom ou code incorrect.');
+    } catch (e) { montrerErreur(msg, 'Pas de connexion. Vérifie ton réseau et réessaie.'); }
+    envoi = false; bouton.disabled = false; bouton.textContent = 'Retrouver mon rendez-vous';
+  });
+  ouvrirFenetre(tete(''), h('h2', { id: 'fen-titre' }, 'Retrouver mon rendez-vous'),
+    h('p', { class: 'aide' }, 'Ton code t\'a été donné quand tu as réservé.'), form);
+}
+
+$('voile').addEventListener('click', (e) => { if (e.target.id === 'voile') fermerFenetre(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('voile').classList.contains('ouvert')) fermerFenetre(); });
+
+/* ============================================================
+   Mode démonstration (aucune donnée envoyée)
+   ============================================================ */
+const demoBase = (() => {
+  const creneaux = []; let id = 2;
+  for (const jour of ['Lundi 30 novembre', 'Mardi 1er décembre']) {
+    for (let m = 16 * 60 + 30; m < 18 * 60; m += 10) creneaux.push({ id: id++, jour, heure: Math.floor(m / 60) + 'h' + deuxChiffres(m % 60), prenom: '' });
+  }
+  const eleves = ['Aziz','GabinB','Alix','GabinCDG','Alice','Tom','Lucas','Raphaël','Lana','Félicia','Evan','Noélie','Lou','Jonas','Elie','Bastien','Timéo','Augustin','Savelio','Nathan'].map((p) => ({ prenom: p, code: '' }));
+  [['Lucas', 1], ['Lana', 4], ['Jonas', 10]].forEach(([p, i]) => { creneaux[i].prenom = p; eleves.find((e) => e.prenom === p).code = 'DEMO'; });
+  return {
+    titre: 'Rendez-vous avant le conseil de classe', lieu: 'Salle B12', duree: 10, creneaux, eleves,
+    questions: [
+      { q: 'Comment juges-tu ton semestre ?', choix: ['Très bien', 'Plutôt bien', 'Moyen', 'Difficile'] },
+      { q: 'Ton travail personnel à la maison ?', choix: ['Régulier', 'Irrégulier', 'Presque inexistant'] },
+      { q: 'Ta participation en classe ?', choix: ['Je participe souvent', 'De temps en temps', 'Rarement'] },
+      { q: 'Ta principale difficulté ?', choix: ['Comprendre les cours', "M'organiser", 'Rester motivé·e', 'Aucune en particulier'] },
+      { q: "Tu veux parler d'orientation ?", choix: ['Oui', 'Non', 'Je ne sais pas encore'] }
+    ]
+  };
+})();
+async function demo(action, d) {
+  await new Promise((r) => setTimeout(r, 300));
+  const B = demoBase;
+  const de = (p) => B.creneaux.find((c) => c.prenom === p);
+  if (action === 'etat') return {
+    ok: true, titre: B.titre, lieu: B.lieu, duree: B.duree, ferme: false, questions: B.questions,
+    eleves: B.eleves.map((e) => ({ prenom: e.prenom, inscrit: !!de(e.prenom) })),
+    creneaux: B.creneaux.map(({ prenom, ...c }) => ({ ...c, libre: !prenom }))
+  };
+  const e = B.eleves.find((x) => x.prenom === d.prenom);
+  if (!e) return { ok: false, erreur: 'Prénom introuvable dans la liste de la classe.' };
+  const codeOk = e.code && String(d.code || '').toUpperCase() === e.code;
+  if (action === 'reserver') {
+    const actuel = de(e.prenom);
+    if (actuel && !codeOk) return { ok: false, code: 'code', erreur: 'Tu as déjà un rendez-vous.' };
+    const c = B.creneaux.find((x) => x.id === d.id);
+    if (c.prenom && c.prenom !== e.prenom) return { ok: false, code: 'pris', erreur: "Oups, ce créneau vient d'être pris. Choisis-en un autre." };
+    if (actuel) actuel.prenom = '';
+    c.prenom = e.prenom;
+    if (!actuel) e.code = Math.random().toString(36).slice(2, 6).toUpperCase();
+    return { ok: true, prenom: e.prenom, code: e.code, id: c.id, jour: c.jour, heure: c.heure };
+  }
+  if (!codeOk) return { ok: false, code: 'code', erreur: 'Prénom ou code incorrect.' };
+  if (action === 'annuler') { const c = de(e.prenom); if (c) c.prenom = ''; e.code = ''; return { ok: true }; }
+  if (action === 'moi') { const c = de(e.prenom); return c ? { ok: true, prenom: e.prenom, code: e.code, id: c.id, jour: c.jour, heure: c.heure, reponses: {}, message: '' } : { ok: false, erreur: "Tu n'as pas de rendez-vous." }; }
+}
+
+actualiser();
 </script>
 </body>
 </html>
