@@ -407,26 +407,30 @@ function ecrireReglage_(cle, valeur) {
 
 /** Onglet de formules : pour chaque question, nombre de réponses, moyenne et répartition des notes. */
 function installerSynthese_(ss) {
-  if (ss.getSheetByName(F_SYNTHESE)) return;
-  const sh = ss.insertSheet(F_SYNTHESE);
+  const sh = ss.getSheetByName(F_SYNTHESE) || ss.insertSheet(F_SYNTHESE);
+  sh.clear();
+  // Séparateur d'arguments : « , » pour un tableau en anglais, « ; » pour un tableau en français, etc.
+  const v = /^(en|ja|zh|ko|th|he|hi)/.test(ss.getSpreadsheetLocale()) ? ',' : ';';
   const entetes = ['Question', 'Réponses', 'Moyenne /' + ECHELLE];
   for (let n = 1; n <= ECHELLE; n++) entetes.push('Nb de ' + n);
   sh.getRange(1, 1, 1, entetes.length).setValues([entetes]);
-  const col = function (r) { return "INDEX('" + F_ELEVES + "'!$A$2:$Z$300,0,MATCH($A" + r + ",'" + F_ELEVES + "'!$A$1:$Z$1,0))"; };
+  const col = function (r) { return "INDEX('" + F_ELEVES + "'!$A$2:$Z$300" + v + "0" + v + "MATCH($A" + r + v + "'" + F_ELEVES + "'!$A$1:$Z$1" + v + "0))"; };
+  const si = function (r, expr) { return '=IF($A' + r + '=""' + v + '""' + v + expr + ')'; };
   const lignes = [];
   for (let r = 2; r <= 13; r++) { // jusqu'à 12 questions
     const ligne = [
-      "=IF('" + F_QUESTIONS + "'!A" + r + "=\"\",\"\",'" + F_QUESTIONS + "'!A" + r + ")",
-      '=IF($A' + r + '="","",IFERROR(COUNT(' + col(r) + '),0))',
-      '=IF($A' + r + '="","",IFERROR(ROUND(AVERAGE(' + col(r) + '),1),"–"))'
+      "=IF('" + F_QUESTIONS + "'!A" + r + '=""' + v + '""' + v + "'" + F_QUESTIONS + "'!A" + r + ')',
+      si(r, 'IFERROR(COUNT(' + col(r) + ')' + v + '0)'),
+      si(r, 'IFERROR(ROUND(AVERAGE(' + col(r) + ')' + v + '1)' + v + '"–")')
     ];
-    for (let n = 1; n <= ECHELLE; n++) ligne.push('=IF($A' + r + '="","",IFERROR(COUNTIF(' + col(r) + ',' + n + '),0))');
+    for (let n = 1; n <= ECHELLE; n++) ligne.push(si(r, 'IFERROR(COUNTIF(' + col(r) + v + n + ')' + v + '0)'));
     lignes.push(ligne);
   }
   sh.getRange(2, 1, lignes.length, entetes.length).setFormulas(lignes);
-  sh.getRange(16, 1, 2, 2).setFormulas([
-    ['Élèves inscrits', "=COUNTIF('" + F_ELEVES + "'!B2:B300,\"?*\")"],
-    ['Élèves dans la classe', "=COUNTA('" + F_ELEVES + "'!A2:A300)"]
+  sh.getRange(16, 1, 2, 1).setValues([['Élèves inscrits'], ['Élèves dans la classe']]);
+  sh.getRange(16, 2, 2, 1).setFormulas([
+    ["=COUNTIF('" + F_ELEVES + "'!B2:B300" + v + '"?*")'],
+    ["=COUNTA('" + F_ELEVES + "'!A2:A300)"]
   ]);
   sh.getRange(16, 1, 2, 1).setFontWeight('bold');
   entete_(sh, entetes.length);
